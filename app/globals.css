@@ -1,0 +1,201 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    overflow: hidden;
+    background: #07111d;
+    font-family: Arial, sans-serif;
+    color: white;
+}
+
+#game-container { width: 100vw; height: 100vh; }
+canvas { display: block; }
+
+.hud {
+    position: absolute;
+    inset: 25px 30px auto;
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+    text-shadow: 0 2px 8px #000;
+}
+
+.player-info h2 { font-size: 22px; letter-spacing: 3px; }
+
+.player-info p, .location span, .mission span {
+    color: #35d9ff;
+    font-size: 10px;
+    letter-spacing: 2px;
+    margin-top: 7px;
+}
+
+.location { text-align: center; }
+.location h3 { margin-top: 7px; font-size: 14px; letter-spacing: 2px; }
+
+.mission { max-width: 250px; text-align: right; }
+.mission p { margin-top: 7px; font-size: 13px; }
+.mission ul { list-style: none; margin-top: 10px; font-size: 11px; line-height: 1.8; letter-spacing: 1px; }
+.mission li::before { content: "○ "; color: #35d9ff; }
+.mission li.done { color: #3dff8a; }
+.mission li.done::before { content: "✔ "; color: #3dff8a; }
+
+.crosshair {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    color: #35d9ff; font-size: 20px; opacity: 0.5; pointer-events: none;
+}
+
+.controls {
+    position: absolute; bottom: 25px; left: 30px;
+    padding: 14px 18px;
+    background: rgba(0, 0, 0, 0.5);
+    border-left: 3px solid #35d9ff;
+    font-size: 12px; line-height: 1.8; pointer-events: none;
+}
+
+#minimap {
+    position: absolute; right: 30px; bottom: 25px;
+    width: 170px; height: 170px; border-radius: 50%;
+    border: 2px solid #35d9ff;
+    background: rgba(0, 10, 20, 0.55);
+    box-shadow: 0 0 18px rgba(53, 217, 255, 0.4);
+    pointer-events: none;
+}
+
+#prompt {
+    position: absolute; bottom: 110px; left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 26px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid #35d9ff;
+    letter-spacing: 2px; font-size: 14px;
+    display: none; pointer-events: none;
+}
+#prompt b { color: #35d9ff; border: 1px solid #35d9ff; padding: 2px 8px; margin-right: 6px; }
+
+#toast {
+    position: absolute; top: 110px; left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 24px; background: rgba(61, 255, 138, 0.15);
+    border: 1px solid #3dff8a; color: #3dff8a;
+    letter-spacing: 2px; font-size: 13px;
+    opacity: 0; transition: opacity 0.4s; pointer-events: none;
+}
+
+#panel {
+    position: fixed; inset: 0; z-index: 10;
+    display: none; align-items: center; justify-content: center;
+    background: rgba(3, 10, 18, 0.75);
+    backdrop-filter: blur(4px);
+}
+#panel.open { display: flex; }
+
+.inner {
+    position: relative;
+    width: min(680px, 92vw); max-height: 85vh; overflow-y: auto;
+    padding: 34px 38px;
+    background: #0b1c2c;
+    border: 1px solid #35d9ff;
+    box-shadow: 0 0 40px rgba(53, 217, 255, 0.3);
+}
+#pTag { color: #35d9ff; font-size: 11px; letter-spacing: 3px; }
+#pTitle { margin: 8px 0 18px; font-size: 28px; letter-spacing: 2px; }
+#pBody { font-size: 15px; line-height: 1.7; color: #d6e6f2; }
+#pBody p { margin-bottom: 12px; }
+#pBody h4 { color: #35d9ff; margin: 16px 0 6px; letter-spacing: 1px; font-size: 13px; }
+#pBody a { color: #35d9ff; margin-right: 16px; }
+#pBody ul { padding-left: 20px; }
+.chips span {
+    display: inline-block; margin: 0 6px 6px 0; padding: 4px 12px;
+    border: 1px solid #35d9ff; border-radius: 20px; font-size: 12px;
+}
+.bar { margin: 8px 0; font-size: 13px; }
+.bar div { height: 7px; margin-top: 4px; background: #16324a; border-radius: 4px; }
+.bar i { display: block; height: 100%; background: linear-gradient(90deg, #35d9ff, #3dff8a); border-radius: 4px; }
+.item { padding: 10px 14px; margin-bottom: 10px; border-left: 3px solid #35d9ff; background: rgba(255, 255, 255, 0.04); }
+.item b { color: #fff; }
+.item small { display: block; color: #8fb3c9; }
+
+#closeBtn {
+    position: absolute; top: 14px; right: 16px;
+    background: none; border: none; color: #fff; font-size: 20px; cursor: pointer;
+}
+
+#start {
+    position: fixed; inset: 0; z-index: 20;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle, #0b2538, #050b12);
+}
+#start.hide { display: none; }
+.card { text-align: center; max-width: 440px; padding: 20px; }
+.card h1 { font-size: 40px; letter-spacing: 6px; }
+.card p { color: #35d9ff; letter-spacing: 4px; font-size: 12px; margin: 8px 0 30px; }
+.card button {
+    padding: 14px 34px; font-size: 14px; letter-spacing: 3px; cursor: pointer;
+    background: transparent; color: #35d9ff; border: 1px solid #35d9ff;
+}
+.card button:hover { background: #35d9ff; color: #07111d; }
+.card small { display: block; margin-top: 22px; color: #8fb3c9; line-height: 1.6; }
+
+#pBody input, #pBody textarea {
+    display: block; width: 100%; margin-bottom: 10px; padding: 10px 12px;
+    background: #07111d; color: #fff; border: 1px solid #35d9ff; font: inherit; resize: vertical;
+}
+#sendBtn {
+    padding: 10px 26px; cursor: pointer; letter-spacing: 2px; font-size: 12px;
+    background: transparent; color: #35d9ff; border: 1px solid #35d9ff;
+}
+#sendBtn:hover { background: #35d9ff; color: #07111d; }
+
+/* 3D panel animation */
+#panel { perspective: 1200px; }
+#panel.open .inner { animation: panelIn 0.5s cubic-bezier(.2,.8,.2,1); }
+#pBody > * { animation: cardIn 0.6s cubic-bezier(.2,.8,.2,1) backwards; transform-origin: top center; }
+.item, .bar { transition: transform 0.15s, box-shadow 0.2s, background 0.2s; }
+.item:hover { box-shadow: 0 0 18px rgba(53,217,255,.35); background: rgba(53,217,255,.09); }
+.bar i { animation: grow 0.9s 0.3s ease-out backwards; }
+@keyframes panelIn { from { opacity: 0; transform: rotateY(-25deg) scale(.85); } to { opacity: 1; transform: none; } }
+@keyframes cardIn {
+    from { opacity: 0; transform: perspective(700px) rotateX(-60deg) translateY(30px) translateZ(-120px); }
+    to   { opacity: 1; transform: perspective(700px) rotateX(0) translateY(0) translateZ(0); }
+}
+@keyframes grow { from { width: 0; } }
+
+.card button { margin: 0 6px 10px; }
+.card small b { color: #35d9ff; }
+
+#guideSay {
+    position: absolute; z-index: 5; transform: translate(-50%, -100%);
+    max-width: 270px; padding: 10px 14px; border-radius: 6px;
+    background: rgba(5, 15, 25, 0.85); border: 1px solid #ff8a3d;
+    font-size: 13px; line-height: 1.5; display: none; pointer-events: none;
+}
+#guideSay::before { content: "🧭 GUIDE"; display: block; color: #ff8a3d; font-size: 10px; letter-spacing: 2px; margin-bottom: 4px; }
+
+#soundBtn {
+    position: absolute; right: 30px; bottom: 205px; z-index: 5;
+    width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+    background: rgba(0, 0, 0, 0.55); border: 1px solid #35d9ff; color: #fff; font-size: 18px;
+}
+#soundBtn:hover { background: rgba(53, 217, 255, 0.25); }
+
+#pBody a.btn {
+    display: inline-block; padding: 10px 20px; margin-top: 6px; letter-spacing: 1px;
+    border: 1px solid #ffb347; color: #ffb347; text-decoration: none;
+}
+#pBody a.btn:hover { background: #ffb347; color: #07111d; }
+
+/* project carousel (compact) */
+.car { height: 190px; perspective: 1000px; margin: 6px 0 8px; }
+.ring { position: relative; left: 50%; top: 20px; width: 240px; height: 150px; margin-left: -120px;
+        transform-style: preserve-3d; transition: transform 0.7s cubic-bezier(.2,.8,.2,1); }
+.card3d { position: absolute; inset: 0; padding: 12px 14px; overflow: hidden; font-size: 13px; line-height: 1.5;
+          background: #112a40; border: 1px solid #35d9ff; border-left: 3px solid #35d9ff; opacity: 0.35;
+          transform: rotateY(calc(var(--i) * var(--step))) translateZ(var(--rad)); backface-visibility: hidden;
+          transition: opacity 0.5s, box-shadow 0.5s; }
+.card3d.on { opacity: 1; box-shadow: 0 0 20px rgba(53, 217, 255, 0.4); }
+.card3d b { display: block; color: #fff; font-size: 15px; }
+.card3d small { display: block; color: #8fb3c9; margin-bottom: 6px; }
+.carnav { text-align: center; }
+.carnav button { width: 38px; height: 30px; cursor: pointer; background: none; border: 1px solid #35d9ff; color: #35d9ff; }
+.carnav button:hover { background: #35d9ff; color: #07111d; }
+.carnav span { margin: 0 14px; letter-spacing: 2px; font-size: 12px; }
