@@ -7,7 +7,7 @@ A modern Next.js website.
 ## Live Website
 
 <!-- VERCEL-LIVE-URL:START -->
-[Visit Live Website](https://your-project.vercel.app)
+[Visit Live Website](https://anujtiwari-dsnqnfebw-iamanujtiwaris-projects.vercel.app)
 <!-- VERCEL-LIVE-URL:END -->
 
 - Edit your profile text in `lib/game.js` (the `CONTENT` object at the top).
