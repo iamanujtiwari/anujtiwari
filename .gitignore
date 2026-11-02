@@ -15,11 +15,8 @@ dist/
 
 # Environment variables and secrets
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.*.local
+.env.*
+!.env.example
 
 # Logs
 logs/
@@ -48,12 +45,18 @@ Desktop.ini
 *.swp
 *.swo
 
-# TypeScript build files
+# TypeScript
 *.tsbuildinfo
-next-env.d.ts
 
 # Local environment
 .envrc
 
 # Deployment credentials
 .vercel-token
+
+# Debugging
+debug/
+.npm/
+
+# Package manager cache
+.npm-cache/
