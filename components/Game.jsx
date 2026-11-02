@@ -35,11 +35,19 @@ export default function Game() {
       <div id="guideSay"></div>
       <button id="soundBtn" title="Sound (M)">🔊</button>
 
+      <div id="touchUI">
+        <div id="joyBase"><div id="joyKnob"></div></div>
+        <button className="tb" id="tJump">JUMP</button>
+        <button className="tb sm" id="tRun">RUN</button>
+        <button className="tb sm" id="tAct">E</button>
+        <button className="tb sm" id="tTour">🧭</button>
+      </div>
+
       <div className="controls">
         <p>WASD — Move &nbsp; Shift — Run &nbsp; Space — Jump</p>
         <p>Mouse or ← → ↑ ↓ — Camera &nbsp; Wheel — Zoom</p>
         <p>E — Interact &nbsp; Esc — Close &nbsp; T — Tour / Free Play</p>
-        <p>M — Sound on/off &nbsp; V — Guide voice</p>
+        <p>M — Sound &nbsp; N — Music &nbsp; V — Guide voice</p>
       </div>
 
       <div id="panel">
@@ -60,7 +68,8 @@ export default function Game() {
           <small>
             <b>Guided Tour</b> — a guide character walks ahead, waits for you and shows you every place.<br />
             <b>Free Play</b> — explore anywhere and follow the direction board at the plaza.<br />
-            Press E at a beacon to open it. Press T anytime to switch.
+            <span className="kbd-only">Press E at a beacon to open it. Press T anytime to switch.</span>
+            <span className="touch-only">Left stick moves · drag the right side to look · pinch to zoom · tap E to interact.</span>
           </small>
         </div>
       </div>

@@ -199,3 +199,68 @@ canvas { display: block; }
 .carnav button { width: 38px; height: 30px; cursor: pointer; background: none; border: 1px solid #35d9ff; color: #35d9ff; }
 .carnav button:hover { background: #35d9ff; color: #07111d; }
 .carnav span { margin: 0 14px; letter-spacing: 2px; font-size: 12px; }
+
+/* ---------- responsive + touch ---------- */
+@supports (height: 100dvh) { #game-container { height: 100dvh; } }
+canvas { touch-action: none; }
+.touch-only { display: none; }
+body.touch .touch-only { display: inline; }
+body.touch .kbd-only, body.touch .controls { display: none; }
+
+#touchUI { display: none; position: fixed; inset: 0; z-index: 6; pointer-events: none; }
+body.touch #touchUI { display: block; }
+#joyBase {
+    position: absolute; left: calc(22px + env(safe-area-inset-left)); bottom: calc(26px + env(safe-area-inset-bottom));
+    width: 130px; height: 130px; border-radius: 50%; pointer-events: auto; touch-action: none;
+    background: rgba(0, 0, 0, 0.35); border: 2px solid rgba(53, 217, 255, 0.6);
+}
+#joyKnob {
+    position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; margin: -28px 0 0 -28px; border-radius: 50%;
+    background: rgba(53, 217, 255, 0.55); border: 2px solid #35d9ff; pointer-events: none;
+}
+.tb {
+    position: absolute; display: flex; align-items: center; justify-content: center; pointer-events: auto; touch-action: none;
+    border-radius: 50%; border: 2px solid #35d9ff; color: #fff; font-weight: bold; letter-spacing: 1px;
+    background: rgba(0, 0, 0, 0.45); user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+}
+.tb:active, .tb.on { background: rgba(53, 217, 255, 0.55); }
+#tJump { width: 78px; height: 78px; right: calc(24px + env(safe-area-inset-right)); bottom: calc(34px + env(safe-area-inset-bottom)); font-size: 13px; }
+#tRun  { width: 56px; height: 56px; right: calc(34px + env(safe-area-inset-right)); bottom: calc(126px + env(safe-area-inset-bottom)); font-size: 11px; }
+#tAct  { width: 64px; height: 64px; right: calc(116px + env(safe-area-inset-right)); bottom: calc(44px + env(safe-area-inset-bottom)); font-size: 22px; display: none; border-color: #ffb347; color: #ffb347; }
+#tTour { width: 56px; height: 56px; right: calc(104px + env(safe-area-inset-right)); bottom: calc(126px + env(safe-area-inset-bottom)); font-size: 22px; }
+
+@media (max-width: 760px), (pointer: coarse) {
+    .hud { inset: 10px 12px auto; z-index: 7; display: grid; grid-template-columns: 1fr auto;
+           grid-template-areas: "name mission" "loc loc"; gap: 4px 8px; }
+    .player-info { grid-area: name; } .mission { grid-area: mission; } .location { grid-area: loc; text-align: left; }
+    .player-info h2 { font-size: 15px; letter-spacing: 2px; }
+    .player-info p, .location span, .mission span { font-size: 8px; margin-top: 3px; }
+    .location h3 { font-size: 11px; margin-top: 3px; }
+    .mission { max-width: 150px; }
+    .mission p { font-size: 10px; margin-top: 3px; }
+    .mission ul { display: none; }
+    #minimap { width: 100px; height: 100px; right: auto; left: 12px; bottom: auto; top: 96px; }
+    #soundBtn { right: 12px; bottom: auto; top: 100px; width: 36px; height: 36px; font-size: 16px; }
+    #prompt { bottom: 175px; font-size: 12px; padding: 8px 14px; letter-spacing: 1px; max-width: 90vw; text-align: center; }
+    #toast { top: 64px; font-size: 11px; padding: 8px 14px; max-width: 90vw; text-align: center; }
+    #guideSay { max-width: 200px; font-size: 12px; padding: 8px 10px; }
+    .inner { padding: 22px 18px; max-height: 88vh; max-height: 88dvh; }
+    #pTitle { font-size: 22px; margin-bottom: 12px; }
+    #pBody { font-size: 14px; }
+    #closeBtn { top: 8px; right: 10px; font-size: 26px; padding: 6px 10px; }
+    .card h1 { font-size: 28px; letter-spacing: 3px; }
+    .card button { display: block; width: 100%; margin: 0 0 12px; }
+    .carnav button { width: 46px; height: 38px; }
+}
+@media (max-height: 480px) and (pointer: coarse) {
+    #joyBase { width: 110px; height: 110px; bottom: 16px; }
+    #tJump { bottom: 20px; width: 64px; height: 64px; }
+    #tRun { bottom: 94px; width: 48px; height: 48px; }
+    #tTour { bottom: 94px; width: 48px; height: 48px; }
+    #tAct { bottom: 26px; width: 54px; height: 54px; }
+    #prompt { bottom: 90px; }
+    .hud { inset: 6px 12px auto; }
+    .player-info p, .mission p { display: none; }
+    #minimap { top: 64px; width: 90px; height: 90px; }
+    #soundBtn { top: 64px; }
+}

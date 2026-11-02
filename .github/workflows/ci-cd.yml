@@ -1,23 +1,30 @@
-
 name: Next.js CI/CD with Vercel
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
-# Allow GitHub Actions to update README
+# contents: write lets the production job commit the live URL into README.md
 permissions:
   contents: write
+  pull-requests: write
+
+concurrency:
+  group: ci-cd-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
 jobs:
+  # ---------- CI ----------
   build:
     name: Build and Test
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -34,14 +41,51 @@ jobs:
       - name: Build application
         run: npm run build
 
+  # ---------- Preview deploy for pull requests ----------
+  preview:
+    name: Deploy preview
+    needs: build
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Pull Vercel configuration
+        run: npx vercel pull --yes --environment=preview
+
+      - name: Build for preview
+        run: npx vercel build
+
+      - name: Deploy preview
+        id: deploy
+        run: |
+          url=$(npx vercel deploy --prebuilt)
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Comment preview URL on the pull request
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `🚀 Preview deployed: ${{ steps.deploy.outputs.url }}`
+            });
+
+  # ---------- Production deploy on push to main ----------
   deploy:
     name: Deploy to Vercel
     needs: build
-
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -56,37 +100,27 @@ jobs:
         run: npm ci
 
       - name: Pull Vercel configuration
-        run: npx vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: npx vercel pull --yes --environment=production
 
       - name: Build for production
-        run: npx vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: npx vercel build --prod
 
       - name: Deploy to Vercel
-        id: deploy
         run: |
-          set -o pipefail
+          # stdout of the CLI is only the deployment URL (the "Inspect:" link goes to stderr)
+          DEPLOY_URL=$(npx vercel deploy --prebuilt --prod)
 
-          npx vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }} 2>&1 | tee deploy.log
-
-          LIVE_URL=$(grep -Eo 'https://[^[:space:]]+' deploy.log | head -n 1 | sed 's/[),]$//')
-
-          if [ -z "$LIVE_URL" ]; then
+          if [ -z "$DEPLOY_URL" ]; then
             echo "Deployment URL not found!"
             exit 1
           fi
 
-          echo "LIVE_URL=$LIVE_URL" >> "$GITHUB_ENV"
+          # Prefer your stable domain (repo variable SITE_URL), fall back to the deployment URL
+          LIVE_URL="${{ vars.SITE_URL }}"
+          LIVE_URL="${LIVE_URL:-$DEPLOY_URL}"
 
+          echo "LIVE_URL=$LIVE_URL" >> "$GITHUB_ENV"
           echo "Deployed website: $LIVE_URL"
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
       - name: Update README live website URL
         run: |
@@ -96,7 +130,6 @@ jobs:
 
           readme = Path("README.md")
           live_url = os.environ["LIVE_URL"]
-
           content = readme.read_text(encoding="utf-8")
 
           start = "<!-- VERCEL-LIVE-URL:START -->"
@@ -108,28 +141,19 @@ jobs:
           before, remaining = content.split(start, 1)
           _, after = remaining.split(end, 1)
 
-          updated = (
-              before
-              + start
-              + "\n"
-              + f"[Visit Live Website]({live_url})\n"
-              + end
-              + after
-          )
-
+          updated = before + start + "\n" + f"[Visit Live Website]({live_url})\n" + end + after
           readme.write_text(updated, encoding="utf-8")
           PY
 
-      - name: Commit and Push README Update
+      - name: Commit and push README update
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
           git add README.md
-
           if git diff --cached --quiet; then
             echo "README already up to date."
           else
             git commit -m "docs: update live website URL"
+            git pull --rebase origin main
             git push origin HEAD:main
           fi
